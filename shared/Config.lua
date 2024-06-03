@@ -27,8 +27,8 @@ Config.PedAnims = {
         "WORLD_HUMAN_AA_SMOKE",
         "WORLD_HUMAN_AA_COFFEE",
         "WORLD_HUMAN_CLIPBOARD",
-        "WORLD_HUMAN_MUSICIAN",
-        "WORLD_HUMAN_STUPOR",
+        --"WORLD_HUMAN_MUSICIAN",
+        --"WORLD_HUMAN_STUPOR",
     }
 }
 
