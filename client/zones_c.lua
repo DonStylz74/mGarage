@@ -65,10 +65,12 @@ end
 lib.callback('mGarage:GarageZones', false, function(response)
     if response then
         for k, v in pairs(response) do
-            local eng = json.decode(v.garage)
-            eng.name  = v.name
-            eng.id    = v.id
-            CreateGarage(eng)
+            if not v.private then
+                local eng = json.decode(v.garage)
+                eng.name  = v.name
+                eng.id    = v.id
+                CreateGarage(eng)
+            end
         end
     end
 end, 'getZones')
@@ -162,7 +164,7 @@ function CreateGarage(data)
                         {
                             id = 'garage_save',
                             icon = 'warehouse',
-                            label = Text[Config.Lang].TargetSaveCar,
+                            label = locale('TargetSaveCar'),
                             onSelect = function()
                                 SaveCar(data)
                             end
@@ -183,7 +185,7 @@ function CreateGarage(data)
                     {
                         name = 'mGarage:SaveTarget' .. data.name,
                         icon = 'fa-solid fa-road',
-                        label = Text[Config.Lang].TargetSaveCar,
+                        label = locale('TargetSaveCar'),
                         groups = data.job,
                         distance = 3.0,
                         onSelect = function(vehicle)
@@ -264,7 +266,7 @@ RegisterNuiCallback('mGarage:adm', function(data, cb)
                 retval = { x = coords.x, y = coords.y, z = coords.z, w = coords.w }
                 promi:resolve()
             end
-        end)
+        end, true)
     elseif data.action == 'spawn_coords' then
         promi = promise:new()
         ShowNui('setVisibleMenu', false)
@@ -274,7 +276,7 @@ RegisterNuiCallback('mGarage:adm', function(data, cb)
                 retval = coords
                 promi:resolve()
             end
-        end)
+        end, true)
     elseif data.action == 'update' then
         retval = GarageAdmAction('update', data.data)
     elseif data.action == 'delete' then

@@ -11,7 +11,7 @@ local NewZone = {}
 function CreateZone(polyzoneName, cb)
   local playerPed = cache.ped
   if not isOpenCretor then
-    lib.showTextUI(Text[Config.Lang].TextUiCreateZone)
+    lib.showTextUI(locale('TextUiCreateZone'))
     currentZoneName = polyzoneName;
     local x, y, z = table.unpack(GetGameplayCamCoord())
     local pitch, roll, yaw = table.unpack(GetGameplayCamRot(2))
@@ -228,8 +228,6 @@ function DisabledControls()
   DisableControlAction(0, 143, true) -- Disable melee
 end
 
-
-
 -- Copy Coords
 function RotationToDirection(rotation)
   local adjustedRotation = {
@@ -260,8 +258,7 @@ function PlayCam(distance)
 end
 
 
-
-function CopyCoords(action, cb)
+function CopyCoords(action, cb, textui)
   local viewEntity
   local CoordsTable = {}
   local ped = PlayerPedId()
@@ -272,8 +269,9 @@ function CopyCoords(action, cb)
   local finalHeight
   local ActiveEntity = nil
   local PedHed = 0.0
-  lib.showTextUI(Text[Config.Lang].TextUiCoords)
-
+  if textui then
+    lib.showTextUI(locale('TextUiCoords'))
+  end
   local Clone = function()
     viewEntity = ClonePed(ped, false, false, true)
     SetEntityCollision(viewEntity, false, true)
@@ -283,7 +281,7 @@ function CopyCoords(action, cb)
 
   local Car = function()
     lib.requestModel('toros')
-    viewEntity = CreateVehicle('toros', coords.x, coords.y, finalHeight, coords.w, false, false)
+    viewEntity = CreateVehicle('toros', 0, 0, 0, 0, false, false)
     SetEntityCollision(viewEntity, false, true)
     return viewEntity
   end
@@ -331,6 +329,11 @@ function CopyCoords(action, cb)
     local formattedStr = "{\n" .. table.concat(toCopy, ",\n") .. "\n}"
     return formattedStr
   end
+  if action == 'coordsped' then
+    ActiveEntity = Clone()
+  elseif action == 'coordscar' then
+    ActiveEntity = Car()
+  end
 
 
   Citizen.CreateThread(function()
@@ -374,21 +377,23 @@ function CopyCoords(action, cb)
       elseif IsControlJustReleased(0, 177) and action == 'multi' then -- BACKSPACE Delete Last Coords
         UndoLastCoord()
       elseif IsControlJustReleased(0, 47) then                        -- G Change Ped/Vehicle/None
-          if ActiveEntity then
-            DeleteEntity(ActiveEntity)
-            ActiveEntity = nil
-          end
-          if not esPedActivo then
-            ActiveEntity = Clone()
-            esPedActivo = true
-          else
-            ActiveEntity = Car()
-            esPedActivo = false
-          end
+        if ActiveEntity then
+          DeleteEntity(ActiveEntity)
+          ActiveEntity = nil
+        end
+        if not esPedActivo then
+          ActiveEntity = Clone()
+          esPedActivo = true
+        else
+          ActiveEntity = Car()
+          esPedActivo = false
+        end
       elseif IsControlJustReleased(0, 191) and action == 'multi' then -- ENTER Copy Coords And Close
         DeleteAllEntitys()
         cb(CoordsTable, toVector4Table())
-        lib.hideTextUI()
+        if textui then
+          lib.hideTextUI()
+        end
         toVector4Table()
         break
       end
@@ -397,4 +402,3 @@ function CopyCoords(action, cb)
     end
   end)
 end
-

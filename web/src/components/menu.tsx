@@ -9,8 +9,10 @@ import { Tabs, Paper, ScrollArea, CloseButton } from '@mantine/core';
 import { IconList, IconPlus } from '@tabler/icons-react';
 
 
-const Menu: React.FC = () => {
+const Menu: React.FC<{ visible: boolean }> = ({ visible }) => {
+
     const [garages, setGarageData] = useState<any[]>([]);
+
     const lang = Lang();
 
     const handleClose = async () => {
@@ -20,37 +22,31 @@ const Menu: React.FC = () => {
     useNuiEvent<any[]>('GarageZones', (data) => { setGarageData(data); });
 
     return (
-        <Paper p='xs'   style={{
-            width: '600px',
-            height: 'auto',
-            position: 'fixed',
-            top: '50%',
-            right: '10px',
-            transform: 'translateY(-50%)',
-        }}>
-            <Tabs variant="outline" defaultValue="create">
+        <Paper className={`menu ${visible ? 'slide-in' : 'slide-out'}`} p={10}>
+            <Tabs color="gray" variant="pills" defaultValue="create">
                 <Tabs.List >
                     <Tabs.Tab value="create" icon={<IconPlus size="0.8rem" />}>{lang.GarageButton4}</Tabs.Tab>
                     <Tabs.Tab value="garages" icon={<IconList size="0.8rem" />}>{lang.GarageButton8}</Tabs.Tab>
                     <Tabs.Tab value="impounds" icon={<IconList size="0.8rem" />}>{'Impound List'}</Tabs.Tab>
                     <Tabs.Tab value="customs" icon={<IconList size="0.8rem" />}>{'Customs List'}</Tabs.Tab>
-                    <CloseButton size="md" onClick={handleClose} color="red" ml='auto' />
+                    <CloseButton radius={10} size={'md'} onClick={handleClose} color="red" variant="light" style={{ marginLeft: 'auto' }} />
                 </Tabs.List>
+
                 <ScrollArea.Autosize mih={800} mah={800} placeholder="" onPointerEnterCapture={() => { }} onPointerLeaveCapture={() => { }}>
 
-                    <Tabs.Panel value="create" sx={{ padding: 5 }}>
+                    <Tabs.Panel value="create" sx={{ marginTop: 10 }}>
                         <Create />
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="garages" sx={{ padding: 5 }}>
+                    <Tabs.Panel value="garages" sx={{ marginTop: 10 }}>
                         <Garage zone='garage' />
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="impounds" sx={{ padding: 5 }}>
+                    <Tabs.Panel value="impounds" sx={{ marginTop: 10 }}>
                         <Garage zone='impound' />
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="customs" sx={{ padding: 5 }}>
+                    <Tabs.Panel value="customs" sx={{ marginTop: 10 }}>
                         <Garage zone='custom' />
                     </Tabs.Panel>
                 </ScrollArea.Autosize>

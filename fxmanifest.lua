@@ -2,7 +2,7 @@ fx_version 'cerulean'
 
 game 'gta5'
 
-version '1.0.0'
+version '1.1.0'
 
 lua54 'yes'
 
@@ -22,9 +22,12 @@ server_scripts {
 }
 
 files {
+  'locales/*.json',
   'web/build/index.html',
   'web/build/**/*',
 }
+
+ox_libs { 'locale' }
 
 ui_page 'web/build/index.html'
 

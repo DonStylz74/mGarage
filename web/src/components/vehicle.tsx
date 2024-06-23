@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { fetchNui } from "../utils/fetchNui";
 import ProgressBar from './lit/progress';
 import Lang from '../utils/LangR';
-import { IconAlertCircle, IconCarCrash, IconCarGarage, IconEngine, IconGasStation, IconKey, IconMapSearch, IconMoneybag } from '@tabler/icons-react';
-import { Accordion, Button, Badge, Group, SimpleGrid, Select, Stack, Text, Paper, Alert } from '@mantine/core';
+import { IconAlertCircle, IconCarCrash, IconCarGarage, IconEngine, IconGasStation, IconKey, IconMapSearch, IconMoneybag, IconPencil } from '@tabler/icons-react';
+import { Accordion, Button, Badge, Group, Select, Stack, Text, Paper, Alert, TextInput } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import AuthModal from './lit/vehName';
 
 interface VehicleProps {
     vehicle: any;
     index: number;
     garage: any;
+    Close: any;
 }
 
-const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
-    const [vehicleData, setVehicleData] = useState(vehicle)
+const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage, Close }) => {
+    const [vehicleData, setVehicleData] = useState(vehicle);
     const [paymentMethod, setPaymentMethod] = useState('money');
+    const [opened, { toggle, close }] = useDisclosure(false);
+
     const lang = Lang();
-    let pound
+    let pound;
 
     useEffect(() => {
         setVehicleData(vehicle);
@@ -31,22 +36,21 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
             const updatedVehicleData = { ...vehicleData };
             updatedVehicleData.stored = 0;
             setVehicleData(updatedVehicleData);
-            fetchNui('mGarage:Close', { name: 'setVisibleGarage' });
-
+            Close();
         }
     };
 
     const Impound = async () => {
         const fetchData = await fetchNui<any>('mGarage:PlyInteract', { action: 'impound', data: { vehicleid: vehicle.id, garage: garage, paymentMethod: paymentMethod } });
         if (fetchData) {
-            fetchNui('mGarage:Close', { name: 'setVisibleGarage' });
+            Close();
         }
     };
 
     const SetBlip = async () => {
         const fetchData = await fetchNui<any>('mGarage:PlyInteract', { action: 'setBlip', data: { plate: vehicleData.plate } });
         if (fetchData) {
-            fetchNui('mGarage:Close', { name: 'setVisibleGarage' });
+            Close();
         }
     };
 
@@ -59,26 +63,30 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
     const SpawnCustomVehicle = async () => {
         const fetchData = await fetchNui<any>('mGarage:PlyInteract', { action: 'spawncustom', data: { vehicle: vehicleData, garage: garage } });
         if (fetchData) {
-            fetchNui('mGarage:Close', { name: 'setVisibleGarage' });
+            Close();
+        }
+    };
+
+    const ChangeName = async (newName: string) => {
+        const fetchData = await fetchNui<any>('mGarage:PlyInteract', { action: 'changeName', data: { vehicle: vehicleData, newName: newName } });
+        if (fetchData) {
+            const updatedVehicleData = { ...vehicleData, vehlabel: newName };
+            vehicle.vehlabel = newName
+            setVehicleData(updatedVehicleData);
         }
     };
 
     if (vehicle.infoimpound) {
         pound = JSON.parse(vehicle.infoimpound);
     }
-    return (
-        <Accordion.Item key={index} value={`${vehicle.vehlabel}_${vehicle.plate}_${index}`} >
-            <Accordion.Control sx={{
-                '&:hover': {
-                    backgroundColor: '#1A1B1E',
-                    borderRadius: 5
-                },
 
-            }}>
-                <Group position="apart" >
+    return (
+        <Accordion.Item key={index} value={`${vehicle.vehlabel}_${vehicle.plate}_${index}`}>
+            <Accordion.Control>
+                <Group position="apart">
                     {garage.garagetype === 'custom' ? (
                         <>
-                            <Badge radius={5} color={'green'} >{vehicle.vehlabel}</Badge>
+                            <Badge radius={5} color={'green'}>{vehicle.vehlabel}</Badge>
                             {vehicle.price > 0 && (
                                 <Badge radius={5} color='green'>
                                     {vehicle.price}
@@ -93,16 +101,15 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
                             >
                                 {vehicle.vehlabel}
                             </Badge>
-                            <Badge radius={5} >{vehicle.plate}</Badge>
+                            <Badge radius={5} color={vehicle.fakeplate ? 'yellow' : ''}>{vehicle.fakeplate ? vehicle.fakeplate : vehicle.plate}</Badge>
                         </>
                     )}
-
                 </Group>
-            </Accordion.Control >
-            <Accordion.Panel sx={{ backgroundColor: '#2e3036' }}>
-                <Paper p='xs' >
+            </Accordion.Control>
+            <Accordion.Panel>
+                <Paper p={5} radius={10}>
                     {garage.garagetype === 'custom' && (
-                        <Button fullWidth onClick={SpawnCustomVehicle} leftIcon={<IconCarGarage size={17} />} variant="light" size='xs' >
+                        <Button fullWidth onClick={SpawnCustomVehicle} leftIcon={<IconCarGarage size={17} />} variant="light" size='xs'>
                             {lang.GarageMenu5}
                         </Button>
                     )}
@@ -111,11 +118,10 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
                             {pound && (
                                 <Stack>
                                     <Group position="apart">
-                                        <Badge color='green'>{lang.GarageMenu1} {pound.price}$</Badge>
                                         <Badge color='yellow'>{lang.GarageMenu2} {pound.date}</Badge>
                                     </Group>
                                     {pound.endPound && (
-                                        <Alert p={5} icon={<IconAlertCircle />} title={lang.ImpoundOption12} color="red" >
+                                        <Alert p={5} icon={<IconAlertCircle />} title={lang.ImpoundOption12} color="red">
                                             <Text size={20}>{pound.endPound}</Text>
                                         </Alert>
                                     )}
@@ -126,7 +132,6 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
                                         label={lang.GaragePayMethod}
                                         value={paymentMethod}
                                         onChange={handleChangePaymentMethod}
-
                                         data={[
                                             { value: 'money', label: lang.GaragePayMethodMoney },
                                             { value: 'bank', label: lang.GaragePayMethodBank },
@@ -137,35 +142,42 @@ const Vehicle: React.FC<VehicleProps> = ({ vehicle, index, garage }) => {
                                     </Button>
                                 </Stack>
                             )}
-
                         </>
                     )}
                     {garage.garagetype === 'garage' && (
-                        <Stack>
-                            <SimpleGrid cols={2} >
-                                <ProgressBar value={vehicle.fuelLevel} text={lang.GarageMenu9} icon={<IconGasStation size={17} />} />
-                                <ProgressBar value={vehicle.engineHealth} text={lang.GarageMenu10} icon={<IconEngine size={17} />} />
-                                <ProgressBar value={vehicle.bodyHealth} text={lang.GarageMenu11} icon={<IconCarCrash size={17} />} />
-                                <Paper style={{ backgroundColor: '#373A40', padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
-                                    <Text fz="md">{lang.GarageMenu4}</Text>
-                                    <Text fz="xs" fw={700} c="teal.4">{vehicle.mileage}</Text>
+                        <Group grow spacing={5} align="flex-start">
+                            <Stack spacing={5}>
+                                <Group  position="center" sx={{ backgroundColor: '#2e3036', borderRadius: 5, height:65}} >
+                                    <ProgressBar value={vehicle.fuelLevel} text={lang.GarageMenu9} icon={<IconGasStation size={17} />} />
+                                    <ProgressBar value={vehicle.engineHealth} text={lang.GarageMenu10} icon={<IconEngine size={17} />} />
+                                    <ProgressBar value={vehicle.bodyHealth} text={lang.GarageMenu11} icon={<IconCarCrash size={17} />} />
+                                </Group>
+                                <Paper style={{ display: 'flex', justifyContent:'space-between', backgroundColor: '#2e3036', borderRadius: 5, height:30, alignItems:'center'}}>
+                                    <Group position="center" p={5} >
+                                        <Text fz="md">{lang.GarageMenu4}</Text>
+                                        <Text fz="xs" fw={700} c="teal.4">{vehicle.mileage}</Text>
+
+                                    </Group>
+
                                 </Paper>
-                            </SimpleGrid>
-                            <Button.Group >
-                                <Button fullWidth onClick={SpawnVehicle} disabled={vehicle.stored == 0} leftIcon={<IconCarGarage size={17} />} variant="light" size='xs' >{lang.GarageMenu5}</Button>
+
+                                <AuthModal opened={opened} close={close} vehicleLabel={vehicle.vehlabel} onChangeName={ChangeName} />
+                            </Stack>
+                            <Stack justify="flex-start" spacing={5} >
+                                <Button color="green" onClick={SpawnVehicle} disabled={vehicle.stored == 0} leftIcon={<IconCarGarage size={17} />} variant="light" size='xs'>{lang.GarageMenu5}</Button>
                                 {vehicle.isOwner && (
                                     <>
-                                        <Button fullWidth onClick={ShowMenuKeys} variant="light" size='xs' leftIcon={<IconKey size={17} />} disabled={vehicle.stored == 1}>{lang.GarageMenu6}</Button>
-                                        <Button fullWidth onClick={SetBlip} variant="light" size='xs' leftIcon={<IconMapSearch size={17} />} disabled={vehicle.stored == 1}>{lang.GarageMenu7}</Button>
+                                        <Button size='xs' variant="light" onClick={toggle} leftIcon={<IconPencil size={17} />} >{lang.ui_name1}</Button>
+                                        <Button onClick={ShowMenuKeys} variant="light" size='xs' leftIcon={<IconKey size={17} />}>{lang.GarageMenu6}</Button>
+                                        <Button onClick={SetBlip} variant="light" size='xs' leftIcon={<IconMapSearch size={17} />} disabled={vehicle.stored == 1}>{lang.GarageMenu7}</Button>
                                     </>
                                 )}
-
-                            </Button.Group>
-                        </Stack>
+                            </Stack>
+                        </Group>
                     )}
                 </Paper>
             </Accordion.Panel>
-        </Accordion.Item >
+        </Accordion.Item>
     );
 };
 
