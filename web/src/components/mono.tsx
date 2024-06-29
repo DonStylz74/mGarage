@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Paper } from '@mantine/core';
+import { Button, Paper, Stack } from '@mantine/core';
 import { isEnvBrowser } from '../utils/misc';
 import { debugData } from '../utils/debugData';
 
@@ -7,19 +7,25 @@ interface VisibilityButtonsProps {
   handleShowGarage: () => void;
   handleShowMenu: () => void;
   handleShowBuy: () => void;
+  handleShowPrivates: () => void;
+  handleShowTooltip: () => void;
   garageVisible: boolean;
   menuVisible: boolean;
   buyVisible: boolean;
+  privatesVisible: boolean;
+  privatesTooltip: boolean;
 }
 
-const VisibilityButtons: React.FC<VisibilityButtonsProps> = ({ handleShowGarage, handleShowMenu, handleShowBuy, garageVisible, menuVisible, buyVisible }) => {
+const VisibilityButtons: React.FC<VisibilityButtonsProps> = ({ handleShowGarage, handleShowMenu, handleShowBuy, handleShowPrivates,handleShowTooltip, garageVisible, menuVisible, buyVisible, privatesVisible, privatesTooltip }) => {
   return (
     <Paper className={` ${isEnvBrowser() ? 'slide-in' : 'slide-out'}`} style={{ display: 'flex', width: 'fit-content', height: 'auto', backgroundColor: '#1A1B1E', borderRadius: 10, padding: 10, margin: 10 }}>
-      <Button.Group orientation="vertical">
-        <Button compact variant="light" color={garageVisible ? 'orange' : 'green'} onClick={handleShowGarage}>Show Garage</Button>
-        <Button compact variant="light" color={menuVisible ? 'orange' : 'green'} onClick={handleShowMenu}>Show Menu</Button>
-        <Button compact variant="light" color={buyVisible ? 'orange' : 'green'} onClick={handleShowBuy}>Show Buy</Button>
-      </Button.Group>
+      <Stack  >
+        <Button size='md'compact variant="light" color={garageVisible ? 'teal' : ''} onClick={handleShowGarage}>Show Garage</Button>
+        <Button size='md'compact variant="light" color={menuVisible ? 'teal' : ''} onClick={handleShowMenu}>Show Menu</Button>
+        <Button size='md'compact variant="light" color={buyVisible ? 'teal' : ''} onClick={handleShowBuy}>Show Buy</Button>
+        <Button size='md'compact variant="light" color={privatesVisible ? 'teal' : ''} onClick={handleShowPrivates}>Show Private Menu</Button>
+        <Button size='md'compact variant="light" color={privatesTooltip ? 'teal' : ''} onClick={handleShowTooltip}>Show Private Menu</Button>
+      </Stack>
     </Paper>
   );
 };
@@ -35,6 +41,14 @@ debugData([
   },
   {
     action: 'setVisibleBuy',
+    data: false
+  },
+  {
+    action: 'setVisiblePrivates',
+    data: false
+  },
+  {
+    action: 'setVisibleTooltip',
     data: false
   },
   {
@@ -122,7 +136,7 @@ debugData([
         "TargetId": 2,
         "points": [{ "w": 0.0, "z": 0.0, "y": 0.0, "x": 0.0 }],
         "priceImpound": 232,
-        "garagetype": "impound",
+        "garagetype": "garage",
         "intocar": false,
         "npchash": "csb_trafficwarden",
         "debug": false,
@@ -147,7 +161,7 @@ debugData([
       "vehicles": [
         {
           "isOwner": true,
-          "infoimpound": "{\"endPound\":\"2024-05-09 01:00\",\"date\":\"2024/05/09 00:24\",\"price\":1,\"reason\":\"asdasad asda sadasd \"}",
+          "infoimpound": "{\"endPound\":\"2024-05-09 01:00\",\"date\":\"2024/05/09 00:24\",\"price\":100,\"reason\":\"asdasad asda sadasd \"}",
           "pound": 1,
           "seats": 4,
           "stored": 1,

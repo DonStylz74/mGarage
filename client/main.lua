@@ -6,28 +6,33 @@ end
 
 local VehicleLabel = function(model)
     if not IsModelValid(model) then
-        lib.print.error(model .. ' - Model invalid')
-        return model
+        lib.print.warn(model .. ' - Model invalid')
+        return 'Unknown'
     end
 
     local makeName = GetMakeNameFromVehicleModel(model)
 
     if not makeName then
-        lib.print.error(model .. ' - No Make Name')
+        lib.print.warn(model .. ' - No Make Name')
         return 'Unknown'
     end
 
     makeName = makeName:sub(1, 1):upper() .. makeName:sub(2):lower()
+
     local displayName = GetDisplayNameFromVehicleModel(model)
+
     displayName = displayName:sub(1, 1):upper() .. displayName:sub(2):lower()
     return makeName .. ' ' .. displayName
 end
 
 
 function OpenGarage(data)
-    local getVehicles = ServerCallBack('get', data, 500)
+    local getVehicles = ServerCallBack('get', data)
+
     local PlayerJob = getVehicles.job
+
     local Vehicles = {}
+
     if data.garagetype == 'impound' or data.garagetype == 'garage' then
         if getVehicles.vehicles then
             for i = 1, #getVehicles.vehicles do
@@ -37,7 +42,9 @@ function OpenGarage(data)
                     row.vehlabel = VehicleLabel(props.model)
                     row.seats = GetVehicleModelNumberOfSeats(props.model)
                     row.metadata = json.decode(row.metadata)
+
                     row.fuelLevel = props.fuelLevel
+
                     if row.metadata then
                         if row.metadata.fakeplate then
                             row.fakeplate = row.metadata.fakeplate
@@ -71,8 +78,8 @@ function OpenGarage(data)
             if #Vehicles <= 0 then
                 return Notification({ title = data.name, description = locale('noVehicles') })
             end
-            SendNUI('garage', { vehicles = Vehicles, garage = data })
 
+            SendNUI('garage', { vehicles = Vehicles, garage = data })
             ShowNui('setVisibleGarage', true)
         end
     else
@@ -255,6 +262,7 @@ RegisterNUICallback('mGarage:PlyInteract', function(data, cb)
         Vehicles.VehickeKeysMenu(data.plate, function()
             ShowNui('setVisibleGarage', true)
         end)
+  
     end
 
     cb(retval)
@@ -276,7 +284,6 @@ exports.ox_target:addGlobalVehicle({
         groups = impoundGroups,
         distance = 5.0,
         onSelect = function(vehicle)
-            print(GetJob().name)
             ImpoundVehicle({
                 vehicle = vehicle.entity,
                 impoundName = Config.TargetImpound[GetJob().name].impoundName

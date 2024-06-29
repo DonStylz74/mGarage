@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { fetchNui } from '../../utils/fetchNui';
-import { CloseButton, Group, Stack, Text, Paper, Image, Badge, Button, Space, Checkbox } from '@mantine/core';
+import { CloseButton, Group, Stack, Text, Paper, Image, Badge, Button, Space, Select, Transition } from '@mantine/core';
 import { useNuiEvent } from '../../hooks/useNuiEvent';
 import Lang from '../../utils/LangR';
 import { debugData } from '../../utils/debugData';
@@ -51,21 +51,16 @@ debugData([
 const BuyGarage: React.FC<{ visible: boolean }> = ({ visible }) => {
     const lang = Lang();
     const [garageData, setGarageData] = useState<any>(null);
-    const [moneyChecked, setMoneyChecked] = useState(false);
-    const [bankChecked, setBankChecked] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState(''); // default value
 
-    const handlePaymentChange = (method: string) => {
-        if (method === 'money') {
-            setMoneyChecked(true);
-            setBankChecked(false);
-        } else if (method === 'bank') {
-            setMoneyChecked(false);
-            setBankChecked(true);
+    const handlePaymentChange = (value: string | null) => {
+        if (value) {
+            setPaymentMethod(value);
+            setGarageData((prevData: any) => ({
+                ...prevData,
+                moneytype: value,
+            }));
         }
-        setGarageData((prevData: any) => ({
-            ...prevData,
-            moneytype: method
-        }));
     };
 
     const handleBuy = async () => {
@@ -73,8 +68,7 @@ const BuyGarage: React.FC<{ visible: boolean }> = ({ visible }) => {
 
         if (response === true) {
             handleClose();
-            setMoneyChecked(false);
-            setBankChecked(false);
+            setPaymentMethod('');
         }
     };
 
@@ -84,8 +78,7 @@ const BuyGarage: React.FC<{ visible: boolean }> = ({ visible }) => {
 
     const handleClose = async () => {
         fetchNui('mGarage:Close', { name: 'setVisibleBuy' });
-        setMoneyChecked(false);
-        setBankChecked(false);
+        setPaymentMethod('');
     };
 
     if (!garageData) {
@@ -95,37 +88,45 @@ const BuyGarage: React.FC<{ visible: boolean }> = ({ visible }) => {
     const slotCount = garageData.interiorData.slot.length;
 
     return (
-        <div className={`Garage ${visible ? 'slide-in' : 'slide-out'}`}>
-            <Paper shadow="md" radius={10} p="xs">
-                <Group>
-                    <Text weight={500} size="lg">{garageData.name}</Text>
-                    <CloseButton radius={10} size={'md'} onClick={handleClose} color="red" variant="light" style={{ marginLeft: 'auto' }} />
-                </Group>
-                <Space h="md" />
-                <Stack>
-                    <Group position='apart'>
-                        <Badge color="green" radius={7} size="lg">{lang.private_manage21} $ {garageData.price.toLocaleString('en-US')}</Badge>
-                        <Badge color="blue" radius={7} size="lg">{lang.private_ui1} {slotCount}</Badge>
+        <Transition mounted={visible} transition="slide-left" duration={600} timingFunction="ease">
+            {(styles) => <div style={styles} className='Garage'>
+                <Paper shadow="md" radius={10} p="xs">
+                    <Group>
+                        <Text weight={500} size="lg">{garageData.name}</Text>
+                        <CloseButton radius={10} size={'md'} onClick={handleClose} color="red" variant="light" style={{ marginLeft: 'auto' }} />
                     </Group>
+                    <Space h="md" />
+                    <Stack>
+                        <Group position='apart'>
+                            <Badge color="green" radius={7} size="lg">{lang.private_manage21} $ {garageData.price.toLocaleString('en-US')}</Badge>
+                            <Badge color="blue" radius={7} size="lg">{lang.private_ui1} {slotCount}</Badge>
+                        </Group>
 
-                    <Image src={garageData.interiorData.image} alt={garageData.name} withPlaceholder radius={10} />
-                    <Text>{lang.private_manage10}</Text>
-                    <Group grow position="center">
-                        <Checkbox
-                            label={lang.private_manage12}
-                            checked={moneyChecked}
-                            onChange={() => handlePaymentChange('money')}
+                        <Image src={garageData.interiorData.image} alt={garageData.name} withPlaceholder radius={10} />
+
+                        <Select
+                            dropdownPosition={"top"}
+                            label={lang.GaragePayMethod}
+                            placeholder={lang.GaragePayMethod}
+                            height={10}
+                            value={paymentMethod}
+                            onChange={handlePaymentChange}
+                            data={[
+                                { value: 'money', label: lang.GaragePayMethodMoney },
+                                { value: 'bank', label: lang.GaragePayMethodBank },
+                            ]}
                         />
-                        <Checkbox
-                            label={lang.private_manage13}
-                            checked={bankChecked}
-                            onChange={() => handlePaymentChange('bank')}
-                        />
-                    </Group>
-                    <Button color='teal' radius={7} variant="light" leftIcon={<IconMoneybag size={20} />} onClick={handleBuy} fullWidth>Buy</Button>
-                </Stack>
-            </Paper>
-        </div>
+
+                        <Button color='teal' radius={7} variant="light" leftIcon={<IconMoneybag size={20} />} onClick={handleBuy} fullWidth>
+                            {lang.private_ui2}
+                        </Button>
+                    </Stack>
+                </Paper>
+
+            </div>}
+
+        </Transition>
+
     );
 };
 

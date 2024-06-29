@@ -1,11 +1,15 @@
 local EditGarageUI = false
 
 function ShowNui(action, shouldShow)
-  SetNuiFocus(shouldShow, shouldShow)
+ 
   SendNUIMessage({ action = action, data = shouldShow })
   if action == 'setVisibleMenu' then
     EditGarageUI = true
   end
+  if action == 'setVisibleTooltip' then
+    return
+  end
+  SetNuiFocus(shouldShow, shouldShow)
 end
 
 function SendNUI(action, data)
@@ -20,7 +24,6 @@ RegisterNuiCallback('mGarage:Close', function(data, cb)
   cb(true)
 
 end)
-
 
 AddEventHandler('ox_lib:setLocale',function (locale)
   SendNUIMessage({ action = 'mGarage:Lang', data = lib.getLocales() })
